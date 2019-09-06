@@ -4,6 +4,44 @@
   
     
     <entry>
+      <title>Java Web Listener</title>
+      <link href="/2019/09/06/Java-Web-Listener/"/>
+      <url>/2019/09/06/Java-Web-Listener/</url>
+      
+        <content type="html"><![CDATA[<h2 id="0x01-Java-Web中有三个不同的角色"><a href="#0x01-Java-Web中有三个不同的角色" class="headerlink" title="0x01 Java Web中有三个不同的角色"></a>0x01 Java Web中有三个不同的角色</h2><ul><li><strong>Servlet</strong>是处理用户请求的载体，根据url映射将请求参数发给对应servlet进行数据处理并返回response</li><li><strong>Filter</strong>介于web容器（Tomcat、Jetty等）和Servlet之间，主要是在请求到达servlet之前捕获HttpRequest进行预先处理，比较常见的filter是Login验证、CharacterEncodingFilter</li><li><strong>Listener</strong>独立于Servlet和Filter之外，不存在先后关系。Listener是一种观察者模式，贯穿web应用的整个生命周期。主要作用是定义一系列事件，并对事件进行监听处理</li></ul><h2 id="0x02-8种Listener"><a href="#0x02-8种Listener" class="headerlink" title="0x02 8种Listener"></a>0x02 8种Listener</h2><table><thead><tr><th align="left">Listener</th><th align="left">说明</th></tr></thead><tbody><tr><td align="left">ServletContextListener</td><td align="left">用于监听ServletContext的启动和销毁</td></tr><tr><td align="left">ServletContextAttributeListener</td><td align="left">用于监听Application范围属性变化</td></tr><tr><td align="left">HttpSessionListener</td><td align="left">用于监听Session的创建和销毁</td></tr><tr><td align="left">HttpSessionIdListener</td><td align="left">用于监听Session的id是否被更改</td></tr><tr><td align="left">HttpSessionAttributeListener</td><td align="left">用于监听session范围属性变化</td></tr><tr><td align="left">HttpSessionActivationListener</td><td align="left">用于监听绑定在HttpSession对象中的JavaBean状态</td></tr><tr><td align="left">HttpSessionBindingListener</td><td align="left">用于监听对象与session的绑定和解绑</td></tr><tr><td align="left">ServletRequestListener</td><td align="left">用于监听ServletRequest对象的初始化和销毁</td></tr><tr><td align="left">ServletRequestAttributeListener</td><td align="left">用于监听ServletRequest对象的属性变化</td></tr></tbody></table><h2 id="0x03-着重看ServletContextListener"><a href="#0x03-着重看ServletContextListener" class="headerlink" title="0x03 着重看ServletContextListener"></a>0x03 着重看ServletContextListener</h2><p>这个Listener的作用是监听ServletContext的启动和销毁，也就是监听web应用的开始和结束。所以通常会使用这个监听器初始化工程和结束工程。<br>这里着重讲两个例子：   </p><blockquote><p>Log4jConfigListener：<br>如果在web.xml设置了这个监听，那么会对日志系统进行初始化，而日志的配置文件路径通过Context-param进行设置   </p></blockquote><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">listener</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">listener-class</span>&gt;</span>org.springframework.web.util.Log4jConfigListener<span class="tag">&lt;/<span class="name">listener-class</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">listener</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">context-param</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">param-name</span>&gt;</span>log4jConfigLocation<span class="tag">&lt;/<span class="name">param-name</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">param-value</span>&gt;</span>classpath:soc-log4j.xml<span class="tag">&lt;/<span class="name">param-value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">context-param</span>&gt;</span></span><br></pre></td></tr></table></figure><p>这里多说一嘴原理，context-param的设置会形成initParameters（Map&lt;String,String&gt;）存在ServletContext中，Log4jConfigListener读取到配置文件的路径即可进行初始化。初始化使用的是DOMConfigurator的configureAndWatch方法。这里是在web工程中初始化日志配置，web容器（tomcat、jetty等）会加载web.xml进行初始化，进而加载Log4jConfigListener，进而对日志进行初始化。但是在普通Java项目中，没有上述这一系列过程，所以需要自己手动加载log配置文件初始化配置，具体的过程就是使用DOMConfigurator调用configureAndWatch方法。</p><blockquote><p>ContextLoaderListener<br>这个Listener需要和DispatcherServlet一起说明。<br>对于一个Spring项目（非mvc），只需要使用ContextLoaderListener对spring配置进行初始化</p></blockquote><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">context-param</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">param-name</span>&gt;</span>contextConfigLocation<span class="tag">&lt;/<span class="name">param-name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">param-value</span>&gt;</span>classpath:spring/spring.xml<span class="tag">&lt;/<span class="name">param-value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">context-param</span>&gt;</span></span><br></pre></td></tr></table></figure><p>主要作用是加载Bean并进行管理。在这个过程中会生成一个WebApplicationContext父容器。    </p><p><strong>总的说来：</strong></p><ul><li>DispatherServlet是Spring mvc工程不可缺少的，Spring MVC配置文件在基础上Spring上有所扩展，所以使用DispatcherServlet对Controller等进行初始化，并根据MVC的初始化过程（初始化文件传输、国际化、映射管理器、异常处理器、视图映射等）。</li><li>DispatherServlet也会生成一个WebApplicationContext，但是此Context是ContextLoaderListener生成的WebApplicationContext的子ApplicationContext。</li><li>两个WebApplicationContext分别加载不同的Spring配置，生成不同的BeanFactory，所以在获取Bean的时候，会先从DispatcherServlet的WebApplicationContext中查找，如果没有再通过父ApplicationContext进行查找。</li></ul>]]></content>
+      
+      
+      
+        <tags>
+            
+            <tag> Java </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>如何打印日志</title>
+      <link href="/2019/09/06/%E5%A6%82%E4%BD%95%E6%89%93%E5%8D%B0%E6%97%A5%E5%BF%97/"/>
+      <url>/2019/09/06/%E5%A6%82%E4%BD%95%E6%89%93%E5%8D%B0%E6%97%A5%E5%BF%97/</url>
+      
+        <content type="html"><![CDATA[<h2 id="0x01、日志打印的目的："><a href="#0x01、日志打印的目的：" class="headerlink" title="0x01、日志打印的目的："></a>0x01、日志打印的目的：</h2><blockquote><p>定位错误（问题）发生的时间、位置、原因</p></blockquote><h2 id="0x02、日志打印的时机："><a href="#0x02、日志打印的时机：" class="headerlink" title="0x02、日志打印的时机："></a>0x02、日志打印的时机：</h2><ul><li>调试开发过程中打印调用信息、参数信息</li><li>用户行为信息（埋点）</li><li>程序运行日志（异常情况）</li><li>系统（机器）运行状态</li></ul><h2 id="0x03、日志的内容"><a href="#0x03、日志的内容" class="headerlink" title="0x03、日志的内容"></a>0x03、日志的内容</h2><ul><li>时间</li><li>地点</li><li>级别（debug、info、warn、error、fatal）</li><li>内容（异常情况）</li><li>唯一标识（参数信息，表示导致该条日志发生的参数）</li><li>上下文信息（用于分析异常发生的原因）</li></ul><h2 id="0x04、日志记录"><a href="#0x04、日志记录" class="headerlink" title="0x04、日志记录"></a>0x04、日志记录</h2><blockquote><p>打印日志的地方不要抛出异常，使用日志记录错误信息。</p></blockquote><h2 id="0x05、日志级别"><a href="#0x05、日志级别" class="headerlink" title="0x05、日志级别"></a>0x05、日志级别</h2><ul><li>debug：   最小级别，用于开发调试</li><li>info：    用于输出可参考信息</li><li>warn：    系统出现个别异常情况，但是这种情况可能是因为数据错误等其他情况造成</li><li>error：   系统发生异常（非预期）情况，不会造成系统崩溃，但是需要进行修复，如Null Pointer</li><li>fatal：   系统发生致命错误，造成系统崩溃、退出等情况</li></ul><h2 id="0x06、项目中的思考"><a href="#0x06、项目中的思考" class="headerlink" title="0x06、项目中的思考"></a>0x06、项目中的思考</h2><ul><li>开发调试过程中使用debug级别进行信息输出</li><li>针对方法调用过程中，使用info输出参数或者方法结果进行记录</li><li>第2个方法中一般会造成大量信息输出，日志设置级别一般为warn、error，所以如果设置了warn和error级别，那么在warn和error日志输出中详细记录时间、地点、内容、唯一标示和上下文信息，最好把方法的参数或者过程中产生的重要变量进行输出，以帮助判断错误原因</li></ul>]]></content>
+      
+      
+      
+        <tags>
+            
+            <tag> Log </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>article title</title>
       <link href="/2019/09/05/article-title/"/>
       <url>/2019/09/05/article-title/</url>
