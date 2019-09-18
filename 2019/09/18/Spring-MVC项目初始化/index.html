@@ -15,7 +15,12 @@
 <meta property="og:description" content="0x01 前言我们都知道启动一个Spring MVC项目，需要类似Tomcat的容器支持。Tomcat是一种Servlet容器用于启动Java web项目，而启动一个项目的入口就是web.xml配置文件。在web.xml中主要是为了配置项目中使用的Servlet、Filter和Listener，并对这几种角色进行初始化。这几种角色的作用就不多说了。本文的重点放在项目启动过程，也就是项目初始化。 0">
 <meta property="og:locale" content="en">
 <meta property="og:image" content="https://haocdp.github.io/images/20190918/init-1.png">
-<meta property="og:updated_time" content="2019-09-18T12:36:41.564Z">
+<meta property="og:image" content="https://haocdp.github.io/images/20190918/init-2.png">
+<meta property="og:image" content="https://haocdp.github.io/images/20190918/init-3.png">
+<meta property="og:image" content="https://haocdp.github.io/images/20190918/init-4.png">
+<meta property="og:image" content="https://haocdp.github.io/images/20190918/init-5.png">
+<meta property="og:image" content="https://haocdp.github.io/images/20190918/init-6.png">
+<meta property="og:updated_time" content="2019-09-18T13:22:36.881Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Spring MVC项目初始化">
 <meta name="twitter:description" content="0x01 前言我们都知道启动一个Spring MVC项目，需要类似Tomcat的容器支持。Tomcat是一种Servlet容器用于启动Java web项目，而启动一个项目的入口就是web.xml配置文件。在web.xml中主要是为了配置项目中使用的Servlet、Filter和Listener，并对这几种角色进行初始化。这几种角色的作用就不多说了。本文的重点放在项目启动过程，也就是项目初始化。 0">
@@ -77,6 +82,8 @@
     <span id="actions">
       <ul>
         
+        <li><a class="icon" href="/2019/09/18/Spring-MVC-一次请求完整过程/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
         
         <li><a class="icon" href="/2019/09/08/你是人间的四月天/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
         
@@ -105,7 +112,7 @@
 
     </div>
     <div id="toc">
-      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-前言"><span class="toc-number">1.</span> <span class="toc-text">0x01 前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-配置文件"><span class="toc-number">2.</span> <span class="toc-text">0x02 配置文件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-初始化过程"><span class="toc-number">3.</span> <span class="toc-text">0x03 初始化过程</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-前言"><span class="toc-number">1.</span> <span class="toc-text">0x01 前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-web-xml配置文件"><span class="toc-number">2.</span> <span class="toc-text">0x02 web.xml配置文件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-初始化过程"><span class="toc-number">3.</span> <span class="toc-text">0x03 初始化过程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x04-Spring配置文件读取"><span class="toc-number">4.</span> <span class="toc-text">0x04 Spring配置文件读取</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#DefaultListableBeanFactory：Bean加载的核心部分，是多个功能的结合。"><span class="toc-number">4.0.1.</span> <span class="toc-text">DefaultListableBeanFactory：Bean加载的核心部分，是多个功能的结合。</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#XmlBeanDefinitionReader-针对XML配置文件的读取"><span class="toc-number">4.0.2.</span> <span class="toc-text">XmlBeanDefinitionReader:针对XML配置文件的读取</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#XML配置文件的读取过程："><span class="toc-number">4.0.3.</span> <span class="toc-text">XML配置文件的读取过程：</span></a></li></ol></li></ol></li></ol>
     </div>
   </span>
 </div>
@@ -150,7 +157,7 @@
 
   <div class="content" itemprop="articleBody">
     <h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><p>我们都知道启动一个<code>Spring MVC</code>项目，需要类似<code>Tomcat</code>的容器支持。<code>Tomcat</code>是一种<code>Servlet</code>容器用于启动<code>Java web</code>项目，而启动一个项目的入口就是<code>web.xml</code>配置文件。在<code>web.xml</code>中主要是为了配置项目中使用的<code>Servlet</code>、<code>Filter</code>和<code>Listener</code>，并对这几种角色进行初始化。这几种角色的作用就不多说了。本文的重点放在项目启动过程，也就是项目初始化。</p>
-<h2 id="0x02-配置文件"><a href="#0x02-配置文件" class="headerlink" title="0x02 配置文件"></a>0x02 配置文件</h2><p>针对一个<code>Spring MVC</code>项目，需要在<code>web.xml</code>中加载<code>Spring</code>配置文件。初始化的方式有两种：</p>
+<h2 id="0x02-web-xml配置文件"><a href="#0x02-web-xml配置文件" class="headerlink" title="0x02 web.xml配置文件"></a>0x02 web.xml配置文件</h2><p>针对一个<code>Spring MVC</code>项目，需要在<code>web.xml</code>中加载<code>Spring</code>配置文件。初始化的方式有两种：</p>
 <blockquote>
 <p>第一种，使用<code>Listener</code>进行初始化</p>
 </blockquote>
@@ -162,7 +169,22 @@
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">servlet</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">servlet-name</span>&gt;</span>springmvc<span class="tag">&lt;/<span class="name">servlet-name</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">servlet-class</span>&gt;</span>org.springframework.web.servlet.DispatcherServlet<span class="tag">&lt;/<span class="name">servlet-class</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">init-param</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">param-name</span>&gt;</span>contextConfigLocation<span class="tag">&lt;/<span class="name">param-name</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">param-value</span>&gt;</span>classpath:spring-web.xml<span class="tag">&lt;/<span class="name">param-value</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;/<span class="name">init-param</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">load-on-startup</span>&gt;</span>1<span class="tag">&lt;/<span class="name">load-on-startup</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">async-supported</span>&gt;</span>true<span class="tag">&lt;/<span class="name">async-supported</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">servlet</span>&gt;</span></span><br><span class="line">	</span><br><span class="line"><span class="tag">&lt;<span class="name">servlet-mapping</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">servlet-name</span>&gt;</span>springmvc<span class="tag">&lt;/<span class="name">servlet-name</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">url-pattern</span>&gt;</span>/<span class="tag">&lt;/<span class="name">url-pattern</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">servlet-mapping</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
 <p>对于第一种方式，使用<code>ContextLoaderListener</code>监听<code>ServletContext</code>初始化时执行，根据<code>context-param</code>的值读取<code>Spring</code>配置文件进行初始化。关于为什么可以使用<code>Listener</code>进行初始化，可以参考<a href="https://haocdp.github.io/2019/09/06/Java-Web-Listener" target="_blank">Java Web Listener</a>这篇文章。这种方式初始化得到的是<code>Application Context</code>。<br>而第二种方式，是<code>Spring MVC</code>项目更为常见的，因为<code>Spring MVC</code>项目都需要使用<code>DispatcherServlet</code>分发请求。通过<code>init-param</code>加载配置文件进行初始化。这种方式得到的上下文是<code>WebApplicationContext</code>，它是<code>ApplicationContext</code>的子上下文环境。</p>
-<h2 id="0x03-初始化过程"><a href="#0x03-初始化过程" class="headerlink" title="0x03 初始化过程"></a>0x03 初始化过程</h2><p>本文同时使用两种加载配置方式进行初始化，从源代码的层面熟悉整个初始化过程。当然，以我目前的水平只能大致了解一下初始化过程，里面很多详细的过程还没有深究。我们从启动项目一步一步来看。<br><img src="../../../../images/20190918/init-1.png" alt="avatar"> </p>
+<h2 id="0x03-初始化过程"><a href="#0x03-初始化过程" class="headerlink" title="0x03 初始化过程"></a>0x03 初始化过程</h2><p>本文同时使用两种加载配置方式进行初始化，从源代码的层面熟悉整个初始化过程。当然，以我目前的水平只能大致了解一下初始化过程，里面很多详细的过程还没有深究。  </p>
+<p><img src="../../../../images/20190918/init-1.png" alt="avatar"> </p>
+<p><img src="../../../../images/20190918/init-2.png" alt="avatar"> </p>
+<p><img src="../../../../images/20190918/init-3.png" alt="avatar"> </p>
+<p>前面的大致过程是初始化上下文信息，生成<code>ApplicationContext</code>。<br><img src="../../../../images/20190918/init-4.png" alt="avatar"> </p>
+<p>最后来到<code>refresh</code>方法，这里才是初始化重要的位置。顺序来说就是根据配置文件的位置读取到配置文件生成资源文件，然后对这个资源文件进行解析生成<code>BeanFactory</code>。<code>BeanFactory</code>就是对Bean进行管理的地方。默认<code>Bean</code>的<code>Scope</code>都是<code>Singleton</code>，所以初始化得到的都是单例。</p>
+<p>初始化<code>ApplicationContext</code>之后，web容器便会对Filter进行初始化，初始化的过程是调用<code>init</code>方法。最后才是<code>Servlet</code>,同样是调用<code>init</code>方法。（初始化顺序：Listener -&gt; Filter -&gt; Servlet) 所以初始化Filter完成之后，便会对<code>DispatcherServlet</code>进行初始化。由于<code>DispatcherServlet</code>本身并没有<code>init</code>方法，所以会调用父类<code>HttpServletBean</code>的方法。<code>DispatcherServlet</code>是一个多层继承的子类，<code>HttpServletBean</code>不是直接父类。</p>
+<p><img src="../../../../images/20190918/init-5.png" alt="avatar"> </p>
+<p>然后会调用<code>FrameworkServlet</code>的<code>initServletBean</code>方法。</p>
+<p><img src="../../../../images/20190918/init-6.png" alt="avatar"> </p>
+<p>在<code>initServletBean</code>方法中调用<code>initWebApplicationContext</code>方法，从这里开始的初始化过程与上述基本相同，都是读取配置文件生成上下文环境和对应的<code>BeanFactory</code>。</p>
+<p>在加载配置文件的过程中有两个核心类：<br><code>DefaultListableBeanFactory</code> 和 <code>XmlBeanDefinitionReader</code>。</p>
+<h2 id="0x04-Spring配置文件读取"><a href="#0x04-Spring配置文件读取" class="headerlink" title="0x04 Spring配置文件读取"></a>0x04 Spring配置文件读取</h2><h4 id="DefaultListableBeanFactory：Bean加载的核心部分，是多个功能的结合。"><a href="#DefaultListableBeanFactory：Bean加载的核心部分，是多个功能的结合。" class="headerlink" title="DefaultListableBeanFactory：Bean加载的核心部分，是多个功能的结合。"></a>DefaultListableBeanFactory：Bean加载的核心部分，是多个功能的结合。</h4><p>1、AliasRegistry：定义对alias的简单增删改操作<br>2、SingletonBeanRegistry：定义对单例的注册和获取<br>3、BeanFactory：定义获取bean及其属性<br>4、BeanDefinitionRegistry：定义对BeanDefinition的各种增删改操作<br>5、ConfigurableBeanFactory：提供配置Factory的各种方法<br>6、ListableBeanFactory：根据各种条件获取bean的配置清单<br>7、AutowireCapableBeanFactory：提供创建bean、自动注入、初始化以及应用bean的后处理器<br>DefaultListableBeanFactory是结合上面所有接口功能的实现类，其中也有针对不同功能也有不同的实现类。</p>
+<h4 id="XmlBeanDefinitionReader-针对XML配置文件的读取"><a href="#XmlBeanDefinitionReader-针对XML配置文件的读取" class="headerlink" title="XmlBeanDefinitionReader:针对XML配置文件的读取"></a>XmlBeanDefinitionReader:针对XML配置文件的读取</h4><p>1、ResourceLoader：定义资源加载器，主要应用于根据给定的资源文件地址返回对应的Resource<br>2、BeanDefinitionReader：主要定义资源文件读取并转换为BeanDefinition的各个功能<br>3、EnvironmentCapable：定义获取Environment方法<br>4、DocumentLoader：定义从资源文件加载转换为Document的功能<br>5、BeanDefinitionDocumentReader：定义读取Document并注册BeanDefinition功能<br>6、BeanDefinitionParserDelegate：定义解析Element的各种方法  </p>
+<h4 id="XML配置文件的读取过程："><a href="#XML配置文件的读取过程：" class="headerlink" title="XML配置文件的读取过程："></a>XML配置文件的读取过程：</h4><p>1、通过实现EnvironmentCapable和BeanDefinitionReader中的方法，使用ResourceLoader将资源文件路径转换为对应的Resource文件<br>2、通过DocumentLoader对Resource文件进行转换，将Resource文件转换为Document文件<br>3、通过实现接口BeanDefinitionDocumentReader的DefaultBeanDefinitionDocumentReader类对Document进行解析，并使用BeanDefinitionParserDelegate对Element进行解析  </p>
+<p>总的来说，这两个核心类，一个是根据配置文件进行解析功能实现，另一个是根据得到的解析结果进行bean的加载、配置、管理功能实现。两个类都是在层层接口定义的基础上，结合不同组件的功能，共同实现最后的目的。</p>
 
   </div>
 </article>
@@ -190,7 +212,7 @@
     </div>
 
     <div id="toc-footer" style="display: none">
-      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-前言"><span class="toc-number">1.</span> <span class="toc-text">0x01 前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-配置文件"><span class="toc-number">2.</span> <span class="toc-text">0x02 配置文件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-初始化过程"><span class="toc-number">3.</span> <span class="toc-text">0x03 初始化过程</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-前言"><span class="toc-number">1.</span> <span class="toc-text">0x01 前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-web-xml配置文件"><span class="toc-number">2.</span> <span class="toc-text">0x02 web.xml配置文件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-初始化过程"><span class="toc-number">3.</span> <span class="toc-text">0x03 初始化过程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x04-Spring配置文件读取"><span class="toc-number">4.</span> <span class="toc-text">0x04 Spring配置文件读取</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#DefaultListableBeanFactory：Bean加载的核心部分，是多个功能的结合。"><span class="toc-number">4.0.1.</span> <span class="toc-text">DefaultListableBeanFactory：Bean加载的核心部分，是多个功能的结合。</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#XmlBeanDefinitionReader-针对XML配置文件的读取"><span class="toc-number">4.0.2.</span> <span class="toc-text">XmlBeanDefinitionReader:针对XML配置文件的读取</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#XML配置文件的读取过程："><span class="toc-number">4.0.3.</span> <span class="toc-text">XML配置文件的读取过程：</span></a></li></ol></li></ol></li></ol>
     </div>
 
     <div id="share-footer" style="display: none">
