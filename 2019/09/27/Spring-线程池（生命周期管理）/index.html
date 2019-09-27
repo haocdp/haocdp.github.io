@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang=en>
+<head><meta name="generator" content="Hexo 3.9.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="0x01 Spring Bean生命周期管理Spring在管理Bean时除了依赖注入这一主要功能外，也提供了在项目启动初始化Bean和项目结束销毁Bean时的附加功能，这一功能对某些涉及到资源管理的Bean来说很有用，也就是本文要说的线程池。 Spring在初始化Bean之后和销毁Bean之前提供了进行一些自定义操作的入口，主要有一下几种方式：     1、注解方式，在方法上使用@PostCons">
+<meta name="keywords" content="Java,Spring MVC,Spring">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring 线程池（生命周期管理）">
+<meta property="og:url" content="https://haocdp.github.io/2019/09/27/Spring-线程池（生命周期管理）/index.html">
+<meta property="og:site_name" content="Haoc_Dp">
+<meta property="og:description" content="0x01 Spring Bean生命周期管理Spring在管理Bean时除了依赖注入这一主要功能外，也提供了在项目启动初始化Bean和项目结束销毁Bean时的附加功能，这一功能对某些涉及到资源管理的Bean来说很有用，也就是本文要说的线程池。 Spring在初始化Bean之后和销毁Bean之前提供了进行一些自定义操作的入口，主要有一下几种方式：     1、注解方式，在方法上使用@PostCons">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="https://haocdp.github.io/images/20190927/1.png">
+<meta property="og:image" content="https://haocdp.github.io/images/20190927/2.png">
+<meta property="og:image" content="https://haocdp.github.io/images/20190927/1.png">
+<meta property="og:image" content="https://haocdp.github.io/images/20190927/3.png">
+<meta property="og:image" content="https://haocdp.github.io/images/20190927/4.png">
+<meta property="og:updated_time" content="2019-09-27T09:14:51.546Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Spring 线程池（生命周期管理）">
+<meta name="twitter:description" content="0x01 Spring Bean生命周期管理Spring在管理Bean时除了依赖注入这一主要功能外，也提供了在项目启动初始化Bean和项目结束销毁Bean时的附加功能，这一功能对某些涉及到资源管理的Bean来说很有用，也就是本文要说的线程池。 Spring在初始化Bean之后和销毁Bean之前提供了进行一些自定义操作的入口，主要有一下几种方式：     1、注解方式，在方法上使用@PostCons">
+<meta name="twitter:image" content="https://haocdp.github.io/images/20190927/1.png">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/iron_man.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/iron_man.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/iron_man.png">
+          
+        
+    
+    <!-- title -->
+    <title>Spring 线程池（生命周期管理）</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- persian styles -->
+    
+      <link rel="stylesheet" href="/css/rtl.css">
+    
+    <!-- rss -->
+    
+    
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/tags/">Tags</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" href="/2019/09/18/Spring-MVC-一次请求完整过程/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://haocdp.github.io/2019/09/27/Spring-线程池（生命周期管理）/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://haocdp.github.io/2019/09/27/Spring-线程池（生命周期管理）/&text=Spring 线程池（生命周期管理）"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://haocdp.github.io/2019/09/27/Spring-线程池（生命周期管理）/&title=Spring 线程池（生命周期管理）"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://haocdp.github.io/2019/09/27/Spring-线程池（生命周期管理）/&is_video=false&description=Spring 线程池（生命周期管理）"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Spring 线程池（生命周期管理）&body=Check out this article: https://haocdp.github.io/2019/09/27/Spring-线程池（生命周期管理）/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://haocdp.github.io/2019/09/27/Spring-线程池（生命周期管理）/&title=Spring 线程池（生命周期管理）"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://haocdp.github.io/2019/09/27/Spring-线程池（生命周期管理）/&title=Spring 线程池（生命周期管理）"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://haocdp.github.io/2019/09/27/Spring-线程池（生命周期管理）/&title=Spring 线程池（生命周期管理）"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://haocdp.github.io/2019/09/27/Spring-线程池（生命周期管理）/&title=Spring 线程池（生命周期管理）"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://haocdp.github.io/2019/09/27/Spring-线程池（生命周期管理）/&name=Spring 线程池（生命周期管理）&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-Spring-Bean生命周期管理"><span class="toc-number">1.</span> <span class="toc-text">0x01 Spring Bean生命周期管理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-线程池生命周期"><span class="toc-number">2.</span> <span class="toc-text">0x02 线程池生命周期</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-Spring-管理线程池"><span class="toc-number">3.</span> <span class="toc-text">0x03 Spring 管理线程池</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        Spring 线程池（生命周期管理）
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Haoc_Dp</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2019-09-27T08:20:33.000Z" itemprop="datePublished">2019-09-27</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link" href="/tags/Java/">Java</a>, <a class="tag-link" href="/tags/Spring/">Spring</a>, <a class="tag-link" href="/tags/Spring-MVC/">Spring MVC</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <h2 id="0x01-Spring-Bean生命周期管理"><a href="#0x01-Spring-Bean生命周期管理" class="headerlink" title="0x01 Spring Bean生命周期管理"></a>0x01 Spring Bean生命周期管理</h2><p>Spring在管理Bean时除了<strong>依赖注入</strong>这一主要功能外，也提供了在项目启动初始化Bean和项目结束销毁Bean时的附加功能，这一功能对某些涉及到资源管理的Bean来说很有用，也就是本文要说的线程池。</p>
+<p>Spring在初始化Bean之后和销毁Bean之前提供了进行一些自定义操作的入口，主要有一下几种方式：   </p>
+<blockquote>
+<p>1、注解方式，在方法上使用<code>@PostConstruct</code>和<code>@PreDestroy</code>注解</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Service</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DemoService</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 初始化方法</span></span><br><span class="line">    <span class="meta">@PostConstruct</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">init</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"after init ..."</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 销毁方法</span></span><br><span class="line">    <span class="meta">@PreDestroy</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">destroy</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"before destroy ..."</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">service</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"Hello World"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>2、注解方式，在<code>@Bean</code>指定Bean的同时通过注解的属性<code>initMethod</code>和<code>destroyMethod</code>指定</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AppConfig</span> </span>&#123;</span><br><span class="line">    <span class="comment">// @Bean</span></span><br><span class="line">    <span class="meta">@Bean</span>(initMethod = <span class="string">"init"</span>, destroyMethod = <span class="string">"destroy"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> DemoService <span class="title">demoService</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> DemoService();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>3、xml配置，通过<code>&lt;bean&gt;</code>的<code>init-method</code>和<code>destroy-method</code>属性指定</p>
+</blockquote>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">class</span>=<span class="string">"haocdp.spring.core.DemoService"</span> <span class="attr">init-method</span> = <span class="string">"init"</span> <span class="attr">destroy-method</span> = <span class="string">"destroy"</span>/&gt;</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>4、通过实现<code>InitializingBean</code>和<code>DisposableBean</code>接口实现初始化和销毁相关操作</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">InitOrderBean</span>   <span class="keyword">implements</span> <span class="title">InitializingBean</span>,<span class="title">DisposableBean</span> </span>&#123;</span><br><span class="line">		<span class="meta">@Override</span></span><br><span class="line">		<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">afterPropertiesSet</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">            System.out.println(<span class="string">"after ..."</span>)</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="meta">@Override</span></span><br><span class="line">		<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">destroy</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">			System.out.println(<span class="string">"before ..."</span>)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
+
+<p>需要注意的是第二种方式和第三种方式是同一种配置的不同实现方式，并与其他两种方式有所差异。</p>
+<p>如果这几种方式同时存在，执行顺序如下：</p>
+<p><strong>实例化： Constructor -&gt; @PostConstruct -&gt; InitializingBean -&gt; init-method</strong></p>
+<hr>
+<p><strong>销毁：   @PreDestroy -&gt; DisposableBean -&gt; destroy-method</strong></p>
+<hr>
+<p>这样顺序的具体原因与Spring Bean生命周期相关，本文就不做详细探讨，我也没有详细了解过。只需要知道这几种方式只是Spring提供的一些功能，方便进行一些附加操作。</p>
+<h2 id="0x02-线程池生命周期"><a href="#0x02-线程池生命周期" class="headerlink" title="0x02 线程池生命周期"></a>0x02 线程池生命周期</h2><p>之所以会关注到Spring Bean的生命周期问题，是因为在使用线程池时涉及到了线程池如何优雅关闭的问题，查看Spring线程池的源码时，看到了下面这部分代码：<br>￼￼<img src="../../../../images/20190927/1.png" alt="avatar"><br>这是Spring线程池的一个抽象父类代码，可以看到该类实现了上述的<code>InitializingBean</code>和<code>DisposableBean</code>接口，也就是说Spring管理线程池的生命周期是通过这种方式实现的。</p>
+<p>对线程池比较熟悉的同学应该都知道线程池的基本配置和运行方式，这里不做详述。本文关注的是线程池的生命周期。线程池的状态一共有running、shutdown、stop、tidying和terminated。   </p>
+<table>
+<thead>
+<tr>
+<th>状态</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Running</td>
+<td>能接受提交新任务，也能处理阻塞队列中的任务</td>
+</tr>
+<tr>
+<td>Shutdown</td>
+<td>不能接受提交的新任务，但是能处理阻塞队列中的未完任务</td>
+</tr>
+<tr>
+<td>Stop</td>
+<td>不能接受新任务，也不能处理阻塞队列中的任务，并且会中断正在处理任务的线程</td>
+</tr>
+<tr>
+<td>Tidying</td>
+<td>如果所有的任务都终止了，有效线程数为0，会进入该状态</td>
+</tr>
+<tr>
+<td>Terminated</td>
+<td>工作线程数为0，工作队列任务数为0，由tidying状态进入，线程池彻底结束</td>
+</tr>
+</tbody></table>
+<p><strong>线程池状态之间的转换关系如下：</strong> </p>
+<table>
+<thead>
+<tr>
+<th>状态转换</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Running -&gt; Shutdown</td>
+<td>调用线程池的<code>shutdown()</code>方法</td>
+</tr>
+<tr>
+<td>Running/Shutdown -&gt; Stop</td>
+<td>调用线程池的<code>shutdownNow()</code>方法</td>
+</tr>
+<tr>
+<td>Shutdown -&gt; Tidying</td>
+<td>阻塞队列为空，线程池工作线程数为0</td>
+</tr>
+<tr>
+<td>Stop -&gt; Tidying</td>
+<td>线程池中工作线程数为0</td>
+</tr>
+<tr>
+<td>Tidying -&gt; Terminated</td>
+<td>执行terminated()方法进入</td>
+</tr>
+</tbody></table>
+<p>从上述可以看出，Running状态下通过调用<code>shutdown()</code>/<code>shutdownNow()</code>进行状态转换，这是程序手动执行的，而Tidying状态是为了整理工作线程和阻塞队列，所以只要条件达到就会进入该状态。虽然进入Terminated状态需要调用<code>terminated()</code>方法，但是这是一个钩子方法，只要进入Tidying就会执行。</p>
+<h2 id="0x03-Spring-管理线程池"><a href="#0x03-Spring-管理线程池" class="headerlink" title="0x03 Spring 管理线程池"></a>0x03 Spring 管理线程池</h2><p>这里我们重点关注shutdown()和shutdownNow()方法，因为在工作过程中，调用不同的方法会造成不同的结果。先说一下工作中遇到的问题。<br>工作中经常会做一些耗时比较长的操作，比如发送邮件或者记录操作日志，这些操作通常是正常业务逻辑触发的一些附加功能。如果同步执行会造成正常操作反应时间过长的问题。所以需要另开线程进行操作。这时需要使用线程池。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"targetExecutor"</span> <span class="attr">class</span>=<span class="string">"org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"corePoolSize"</span> <span class="attr">value</span>=<span class="string">"10"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"queueCapacity"</span> <span class="attr">value</span>=<span class="string">"100"</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>定义线程池，并在代码中执行：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">targetExecutor.execute(() -&gt; addOperateLog(beforeEventInfo, eventInfo));</span><br></pre></td></tr></table></figure>
+
+<p>在正常的部署项目中，执行代码没有任何问题，任务提交到线程池中进行执行。但是在单元测试中执行就会有问题了。线程池的任务没有正常执行完毕。<br>通过分析正常部署项目和单元测试的差异，我们可以知道，正常部署项目中线程池的生命周期贯穿整个项目，只有服务停掉才会销毁线程池。但是单元测试主线程执行完就会关闭线程池，从而导致任务没有正常执行完毕。<br>这里涉及到了Spring Bean的生命周期管理。线程池的生命周期就是通过上述说到的自定义初始化和销毁操作进行管理。<br>查看线程池的代码：<br>￼￼<img src="../../../../images/20190927/2.png" alt="avatar"><br>￼￼<img src="../../../../images/20190927/1.png" alt="avatar"><br>可以看到线程池实现了InitializingBean和DisposableBean接口，因此当Spring容器关闭时就会调用destroy()方法<br>￼￼<img src="../../../../images/20190927/3.png" alt="avatar"><br>重点在shutdown方法中<br>￼￼<img src="../../../../images/20190927/4.png" alt="avatar"><br>通过查看这里的源码可以得知，调用<code>shutdown()</code>还是<code>shutdownNow()</code>方法取决于<code>waitForTasksToCompleteOnShutdown</code>参数。所以，如果改一下线程池的配置：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"targetExecutor"</span> <span class="attr">class</span>=<span class="string">"org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"corePoolSize"</span> <span class="attr">value</span>=<span class="string">"10"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"queueCapacity"</span> <span class="attr">value</span>=<span class="string">"100"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"waitForTasksToCompleteOnShutdown"</span> <span class="attr">value</span>=<span class="string">"true"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"awaitTerminationSeconds"</span> <span class="attr">value</span>=<span class="string">"60"</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>那么线程池从Running状态会进入Shutdown，这是会等待已有的任务执行完毕再关闭线程池。单元测试就会正常执行了。<br>其中还有一个<code>awaitTerminationSeconds</code>参数是指等待线程池状态到Terminated的最长时间。</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/tags/">Tags</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-Spring-Bean生命周期管理"><span class="toc-number">1.</span> <span class="toc-text">0x01 Spring Bean生命周期管理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-线程池生命周期"><span class="toc-number">2.</span> <span class="toc-text">0x02 线程池生命周期</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-Spring-管理线程池"><span class="toc-number">3.</span> <span class="toc-text">0x03 Spring 管理线程池</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://haocdp.github.io/2019/09/27/Spring-线程池（生命周期管理）/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://haocdp.github.io/2019/09/27/Spring-线程池（生命周期管理）/&text=Spring 线程池（生命周期管理）"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://haocdp.github.io/2019/09/27/Spring-线程池（生命周期管理）/&title=Spring 线程池（生命周期管理）"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://haocdp.github.io/2019/09/27/Spring-线程池（生命周期管理）/&is_video=false&description=Spring 线程池（生命周期管理）"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Spring 线程池（生命周期管理）&body=Check out this article: https://haocdp.github.io/2019/09/27/Spring-线程池（生命周期管理）/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://haocdp.github.io/2019/09/27/Spring-线程池（生命周期管理）/&title=Spring 线程池（生命周期管理）"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://haocdp.github.io/2019/09/27/Spring-线程池（生命周期管理）/&title=Spring 线程池（生命周期管理）"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://haocdp.github.io/2019/09/27/Spring-线程池（生命周期管理）/&title=Spring 线程池（生命周期管理）"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://haocdp.github.io/2019/09/27/Spring-线程池（生命周期管理）/&title=Spring 线程池（生命周期管理）"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://haocdp.github.io/2019/09/27/Spring-线程池（生命周期管理）/&name=Spring 线程池（生命周期管理）&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2019 haoc_dp
+  </div>
+  <!-- <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/tags/">Tags</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </nav>
+  </div> -->
+</footer>
+
+    </div>
+    <!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+<link rel="stylesheet" href="/lib/justified-gallery/css/justifiedGallery.min.css">
+
+    <!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/js/jquery.justifiedGallery.min.js"></script>
+<!-- clipboard -->
+
+  <script src="/lib/clipboard/clipboard.min.js"></script>
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight .code pre").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      target: function(trigger) {
+        return trigger.nextElementSibling;
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+<script src="/js/main.js"></script>
+<!-- search -->
+
+<!-- Google Analytics -->
+
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-148173917-1', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+<!-- Baidu Analytics -->
+
+<!-- Disqus Comments -->
+
+
+</body>
+</html>
