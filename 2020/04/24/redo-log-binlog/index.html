@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang=en>
+<head><meta name="generator" content="Hexo 3.9.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="在极客时间上有个丁奇老师的Mysql课程，《MySQL实战45讲》，可以说对MySQL的讲解非常到位了，非常适合DBA和后端开发人员。我刚开始学的时候就想要是我在校招时学了这个课程，找到的工作一定比现在的好。 这个课程虽然我之前学习过一段时间，但是总觉得很多地方似懂非懂，没有完全搞明白，所以这次又重新回来学习一遍。在课程第二讲时讲到了一条更新语句如何执行的，其中涉及到了redo log和binlo">
+<meta name="keywords" content="mysql">
+<meta property="og:type" content="article">
+<meta property="og:title" content="redo log &amp; binlog">
+<meta property="og:url" content="https://haocdp.github.io/2020/04/24/redo-log-binlog/index.html">
+<meta property="og:site_name" content="Haoc_Dp">
+<meta property="og:description" content="在极客时间上有个丁奇老师的Mysql课程，《MySQL实战45讲》，可以说对MySQL的讲解非常到位了，非常适合DBA和后端开发人员。我刚开始学的时候就想要是我在校招时学了这个课程，找到的工作一定比现在的好。 这个课程虽然我之前学习过一段时间，但是总觉得很多地方似懂非懂，没有完全搞明白，所以这次又重新回来学习一遍。在课程第二讲时讲到了一条更新语句如何执行的，其中涉及到了redo log和binlo">
+<meta property="og:locale" content="en">
+<meta property="og:updated_time" content="2020-04-24T12:50:40.971Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="redo log &amp; binlog">
+<meta name="twitter:description" content="在极客时间上有个丁奇老师的Mysql课程，《MySQL实战45讲》，可以说对MySQL的讲解非常到位了，非常适合DBA和后端开发人员。我刚开始学的时候就想要是我在校招时学了这个课程，找到的工作一定比现在的好。 这个课程虽然我之前学习过一段时间，但是总觉得很多地方似懂非懂，没有完全搞明白，所以这次又重新回来学习一遍。在课程第二讲时讲到了一条更新语句如何执行的，其中涉及到了redo log和binlo">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/iron_man.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/iron_man.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/iron_man.png">
+          
+        
+    
+    <!-- title -->
+    <title>redo log &amp; binlog</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- persian styles -->
+    
+      <link rel="stylesheet" href="/css/rtl.css">
+    
+    <!-- rss -->
+    
+    
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/tags/">Tags</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" href="/2020/04/22/log4j日志/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://haocdp.github.io/2020/04/24/redo-log-binlog/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://haocdp.github.io/2020/04/24/redo-log-binlog/&text=redo log &amp; binlog"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://haocdp.github.io/2020/04/24/redo-log-binlog/&title=redo log &amp; binlog"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://haocdp.github.io/2020/04/24/redo-log-binlog/&is_video=false&description=redo log &amp; binlog"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=redo log &amp; binlog&body=Check out this article: https://haocdp.github.io/2020/04/24/redo-log-binlog/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://haocdp.github.io/2020/04/24/redo-log-binlog/&title=redo log &amp; binlog"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://haocdp.github.io/2020/04/24/redo-log-binlog/&title=redo log &amp; binlog"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://haocdp.github.io/2020/04/24/redo-log-binlog/&title=redo log &amp; binlog"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://haocdp.github.io/2020/04/24/redo-log-binlog/&title=redo log &amp; binlog"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://haocdp.github.io/2020/04/24/redo-log-binlog/&name=redo log &amp; binlog&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        redo log &amp; binlog
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Haoc_Dp</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2020-04-24T12:21:35.000Z" itemprop="datePublished">2020-04-24</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link" href="/tags/mysql/">mysql</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>在极客时间上有个丁奇老师的Mysql课程，《MySQL实战45讲》，可以说对MySQL的讲解非常到位了，非常适合DBA和后端开发人员。我刚开始学的时候就想要是我在校招时学了这个课程，找到的工作一定比现在的好。</p>
+<p>这个课程虽然我之前学习过一段时间，但是总觉得很多地方似懂非懂，没有完全搞明白，所以这次又重新回来学习一遍。在课程第二讲时讲到了一条更新语句如何执行的，其中涉及到了redo log和binlog。之前的学习工作工程中学习到了binlog是为了记录mysql执行日志的，为了以后的数据恢复和重放。但是对redo log的了解基本没有，其实也不太了解为什么会有两个log，为什么会有两阶段提交。这次就记录一下学习的内容。</p>
+<p>首先，我们需要明确的是Mysql为了保证服务和数据的问题，就需要执行策略保证即使服务器异常故障导致宕机也不会丢失数据和保证数据一致性。所以就引入了log。binlog是Mysql服务器的日志记录策略，记录每次用户进行操作的步骤和数据内容。记录的方式有两种：记录每次更改后的数据和记录操作。这两种各有利弊，不展开说了。通过binlog可以将数据库中每次操作的内容记录下来，即使服务器宕机或者因为误操作需要恢复数据，我们就可以备份数据和binlog来进行重放将数据恢复到之前的某一个时刻。</p>
+<p>那为什么还会有redo log这个东西呢？redo log的作用是每次数据进行更新时，先将数据更新写到redo log中，然后更新内存就结束了更新操作。这时数据库中的数据并不会改变，用户操作的数据都是内存中的数据，然后通过记日志加快数据更新的操作。这里可以这样理解：更新内存数据要比更新磁盘要快吧，写日志的顺序写要比更新数据库的更新索引更新数据要快吧，所以通过这种方式，加速数据库更新操作。然后在数据库空闲时再把redo log记录的操作更新到数据库中真正的数据中。通过这样的机制就可以保证数据库发生异常重启，之前的提交记录也不会丢失，这个能力就叫做crash-safe。</p>
+<p>从数据库上理解，redo log和binlog是为了做不同的事存在的，历史原因是redo log是InnoDB特有的，所以如果使用InnoDB引擎，这两种log必定同时存在。</p>
+<p>为了同时写这两个日志，并保证数据一致性，这时就必须两阶段提交。两阶段提交的目的是保证redo log和binlog的记录的操作是一致的，不然使用redo log更新数据库操作或者使用binlog恢复数据时就会导致数据不一致。这也是一种原子操作、事务的体现。</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/tags/">Tags</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://haocdp.github.io/2020/04/24/redo-log-binlog/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://haocdp.github.io/2020/04/24/redo-log-binlog/&text=redo log &amp; binlog"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://haocdp.github.io/2020/04/24/redo-log-binlog/&title=redo log &amp; binlog"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://haocdp.github.io/2020/04/24/redo-log-binlog/&is_video=false&description=redo log &amp; binlog"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=redo log &amp; binlog&body=Check out this article: https://haocdp.github.io/2020/04/24/redo-log-binlog/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://haocdp.github.io/2020/04/24/redo-log-binlog/&title=redo log &amp; binlog"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://haocdp.github.io/2020/04/24/redo-log-binlog/&title=redo log &amp; binlog"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://haocdp.github.io/2020/04/24/redo-log-binlog/&title=redo log &amp; binlog"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://haocdp.github.io/2020/04/24/redo-log-binlog/&title=redo log &amp; binlog"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://haocdp.github.io/2020/04/24/redo-log-binlog/&name=redo log &amp; binlog&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2020 haoc_dp
+  </div>
+  <!-- <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/tags/">Tags</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </nav>
+  </div> -->
+</footer>
+
+    </div>
+    <!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+<link rel="stylesheet" href="/lib/justified-gallery/css/justifiedGallery.min.css">
+
+    <!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/js/jquery.justifiedGallery.min.js"></script>
+<!-- clipboard -->
+
+  <script src="/lib/clipboard/clipboard.min.js"></script>
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight .code pre").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      target: function(trigger) {
+        return trigger.nextElementSibling;
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+<script src="/js/main.js"></script>
+<!-- search -->
+
+<!-- Google Analytics -->
+
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-148173917-1', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+<!-- Baidu Analytics -->
+
+<!-- Disqus Comments -->
+
+
+</body>
+</html>
