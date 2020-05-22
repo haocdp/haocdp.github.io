@@ -4,6 +4,27 @@
   
     
     <entry>
+      <title>ThreadLocal vs InheritableThreadLocal</title>
+      <link href="/2020/05/22/ThreadLocal-vs-InheritableThreadLocal/"/>
+      <url>/2020/05/22/ThreadLocal-vs-InheritableThreadLocal/</url>
+      
+        <content type="html"><![CDATA[<p>这是一个坑位post。</p><p>有时间写一下 ThreadLocal 和 InheritableThreadLocal 的区别及应用。</p><p>ThreadLocal应用在@Transactional</p><p>InheritableThreadLocal应用在TraceId</p>]]></content>
+      
+      
+      
+        <tags>
+            
+            <tag> Java </tag>
+            
+            <tag> 多线程 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>@Async</title>
       <link href="/2020/05/22/Async/"/>
       <url>/2020/05/22/Async/</url>
@@ -132,9 +153,9 @@
             
             <tag> Spring </tag>
             
-            <tag> Spring MVC </tag>
-            
             <tag> Java </tag>
+            
+            <tag> Spring MVC </tag>
             
         </tags>
       
@@ -153,9 +174,9 @@
       
         <tags>
             
-            <tag> Spring MVC </tag>
-            
             <tag> Java </tag>
+            
+            <tag> Spring MVC </tag>
             
         </tags>
       
@@ -174,9 +195,9 @@
       
         <tags>
             
-            <tag> Spring MVC </tag>
-            
             <tag> Java </tag>
+            
+            <tag> Spring MVC </tag>
             
         </tags>
       
