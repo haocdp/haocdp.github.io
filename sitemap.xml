@@ -2,6 +2,20 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://haocdp.github.io/2020/06/11/%E6%97%A5%E5%BF%97%E8%AE%B0%E5%BD%95%E5%85%A8%E6%B5%81%E7%A8%8B/</loc>
+    
+    <lastmod>2020-06-11T06:49:44.494Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://haocdp.github.io/2020/06/11/%E6%97%A5%E5%BF%97%E8%AE%B0%E5%BD%95%E4%B8%8ERequest-Response-Wrapper%E7%B1%BB/</loc>
+    
+    <lastmod>2020-06-11T06:47:59.879Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>https://haocdp.github.io/2020/05/22/ThreadLocal-vs-InheritableThreadLocal/</loc>
     
     <lastmod>2020-06-09T10:01:01.242Z</lastmod>

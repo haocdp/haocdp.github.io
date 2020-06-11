@@ -4,6 +4,44 @@
   
     
     <entry>
+      <title>日志记录全流程</title>
+      <link href="/2020/06/11/%E6%97%A5%E5%BF%97%E8%AE%B0%E5%BD%95%E5%85%A8%E6%B5%81%E7%A8%8B/"/>
+      <url>/2020/06/11/%E6%97%A5%E5%BF%97%E8%AE%B0%E5%BD%95%E5%85%A8%E6%B5%81%E7%A8%8B/</url>
+      
+        <content type="html"><![CDATA[<p>这个博文记录一下我在一个实际项目开发过程中的日志记录节点和信息。</p><p>不一定是最完美的，但是算是自己的一次尝试。</p><p>以后如果有更好的方案再改进。</p>]]></content>
+      
+      
+      
+        <tags>
+            
+            <tag> 日志 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>日志记录与Request|Response Wrapper类</title>
+      <link href="/2020/06/11/%E6%97%A5%E5%BF%97%E8%AE%B0%E5%BD%95%E4%B8%8ERequest-Response-Wrapper%E7%B1%BB/"/>
+      <url>/2020/06/11/%E6%97%A5%E5%BF%97%E8%AE%B0%E5%BD%95%E4%B8%8ERequest-Response-Wrapper%E7%B1%BB/</url>
+      
+        <content type="html"><![CDATA[<p>先占个坑。</p><p>日志记录过程中，我们有时会想要记录接口的参数和返回值。但是因为Request和Response流的特性，无法重复获取里面的内容，过滤器或者拦截器中获取了之后，方法里面就没了。真的有够奇怪的。</p><p>这时候就需要Wrapper类进行一次封装来解决这个问题。</p>]]></content>
+      
+      
+      
+        <tags>
+            
+            <tag> 日志， Wrapper </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>ThreadLocal &amp; InheritableThreadLocal</title>
       <link href="/2020/05/22/ThreadLocal-vs-InheritableThreadLocal/"/>
       <url>/2020/05/22/ThreadLocal-vs-InheritableThreadLocal/</url>
