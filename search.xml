@@ -4,6 +4,25 @@
   
     
     <entry>
+      <title>@Async 循环依赖</title>
+      <link href="/2020/08/05/Async-%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96/"/>
+      <url>/2020/08/05/Async-%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96/</url>
+      
+        <content type="html"><![CDATA[<h2 id="0x01-背景"><a href="#0x01-背景" class="headerlink" title="0x01 背景"></a>0x01 背景</h2><p>1、  </p><pre><code>使用Spring注解@Async可以让方法以异步的方式执行。原理是生成动态代理类交给线程池进行方法执行。</code></pre><p>2、</p><pre><code>Spring进行Bean管理会有循环依赖的问题。但是Spring已经解决了非构造器的循环依赖。</code></pre><h2 id="0x02-问题"><a href="#0x02-问题" class="headerlink" title="0x02 问题"></a>0x02 问题</h2><p>但是当上述两种情况同时发生时，循环依赖就会失效。</p><p>具体可以参考这篇博客：<a href="https://blog.csdn.net/f641385712/article/details/92797058" target="_blank" rel="noopener">使用@Async异步注解导致该Bean在循环依赖时启动报BeanCurrentlyInCreationException异常的根本原因分析，以及提供解决方案</a></p>]]></content>
+      
+      
+      
+        <tags>
+            
+            <tag> Spring </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>日志记录全流程</title>
       <link href="/2020/06/11/%E6%97%A5%E5%BF%97%E8%AE%B0%E5%BD%95%E5%85%A8%E6%B5%81%E7%A8%8B/"/>
       <url>/2020/06/11/%E6%97%A5%E5%BF%97%E8%AE%B0%E5%BD%95%E5%85%A8%E6%B5%81%E7%A8%8B/</url>
@@ -168,11 +187,11 @@
       
         <tags>
             
+            <tag> Spring </tag>
+            
             <tag> Java </tag>
             
             <tag> Spring MVC </tag>
-            
-            <tag> Spring </tag>
             
         </tags>
       
